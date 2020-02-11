@@ -874,19 +874,18 @@ class ExternalMarkdownCompiler(Compiler):
         return markdown_html
 
     def get_parser_specific_subprocess(self, cmd):
+        return subprocess.Popen(
+            cmd, startupinfo=self.get_parser_specific_startupinfo(),
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+
+    def get_parser_specific_startupinfo(self):
         if sublime.platform() == "windows":
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            return subprocess.Popen(
-                cmd, startupinfo=startupinfo,
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            )
         else:
-            return subprocess.Popen(
-                cmd,
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            )
-
+            starupinfo = None
+        return starupinfo
 
 class MarkdownCompiler(Compiler):
     """Python Markdown compiler."""
