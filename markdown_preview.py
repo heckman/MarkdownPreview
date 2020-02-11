@@ -875,11 +875,12 @@ class ExternalMarkdownCompiler(Compiler):
 
     def get_parser_specific_subprocess(self, cmd):
         return subprocess.Popen(
-            cmd, startupinfo=self.get_parser_specific_startupinfo(),
+            cmd, startupinfo=self.get_platform_specific_startupinfo(),
+            shell=not isinstance(cmd, list),
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
-    def get_parser_specific_startupinfo(self):
+    def get_platform_specific_startupinfo(self):
         if sublime.platform() == "windows":
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
