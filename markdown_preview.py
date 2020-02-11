@@ -856,10 +856,9 @@ class ExternalMarkdownCompiler(Compiler):
         settings = sublime.load_settings("MarkdownPreview.sublime-settings")
         binary = settings.get('markdown_binary_map', {})[self.compiler_name]
 
-        if len(binary) and os.path.exists(binary[0]):
-            cmd = binary
+        try:
             sublime.status_message('converting markdown with %s...' % self.compiler_name)
-            p = self.get_parser_specific_subprocess(cmd)
+            p = self.get_parser_specific_subprocess(binary)
             for line in markdown_text.split('\n'):
                 p.stdin.write((line + '\n').encode('utf-8'))
             markdown_html = p.communicate()[0].decode("utf-8")
@@ -868,19 +867,19 @@ class ExternalMarkdownCompiler(Compiler):
                 sublime.error_message("Could not convert file! See console for more info.")
                 log(markdown_html)
                 markdown_html = _CANNOT_CONVERT
-        else:
+        except:
             sublime.error_message("Cannot find % binary!" % self.binary)
             markdown_html = _CANNOT_CONVERT
         return markdown_html
 
     def get_parser_specific_subprocess(self, cmd):
         return subprocess.Popen(
-            cmd, startupinfo=self.get_platform_specific_startupinfo(),
+            cmd, startupinfo=self.get_platform_specific_subprocess_startupinfo(),
             shell=not isinstance(cmd, list),
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
-    def get_platform_specific_startupinfo(self):
+    def get_platform_specific_subprocess_startupinfo(self):
         if sublime.platform() == "windows":
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
