@@ -859,18 +859,7 @@ class ExternalMarkdownCompiler(Compiler):
         if len(binary) and os.path.exists(binary[0]):
             cmd = binary
             sublime.status_message('converting markdown with %s...' % self.compiler_name)
-            if sublime.platform() == "windows":
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                p = subprocess.Popen(
-                    cmd, startupinfo=startupinfo,
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                )
-            else:
-                p = subprocess.Popen(
-                    cmd,
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                )
+            p = self.get_parser_specific_subprocess(cmd)
             for line in markdown_text.split('\n'):
                 p.stdin.write((line + '\n').encode('utf-8'))
             markdown_html = p.communicate()[0].decode("utf-8")
@@ -883,6 +872,20 @@ class ExternalMarkdownCompiler(Compiler):
             sublime.error_message("Cannot find % binary!" % self.binary)
             markdown_html = _CANNOT_CONVERT
         return markdown_html
+
+    def get_parser_specific_subprocess(self, cmd):
+        if sublime.platform() == "windows":
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            return subprocess.Popen(
+                cmd, startupinfo=startupinfo,
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+        else:
+            return subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
 
 
 class MarkdownCompiler(Compiler):
